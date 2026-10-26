@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Навигация по каналу</title>
+<script src="telegram-web-app.js"></script>
+<script>
+/* ===== меняете только этот блок ===== */
+window.KK_DATA = {
+  pageTitle: "Навигация по каналу",
+  themeColor: "#0A0A0A",
+  eyebrow: "Путеводитель по каналу",
+  titleLines: ["Лучшие посты", "в одном месте"],
+  intro: "Демо-канал про автоматизацию контента. Здесь собраны посты, с которых лучше начать.",
+  cta: {
+    title: "Не пропустите новое",
+    text: "Каждую неделю выходят новые скиллы и разборы. Подпишитесь, чтобы получать их первыми.",
+    button: "Открыть канал",
+    url: "https://t.me/telegram"
+  },
+  cardsTitle: "С чего начать",
+  cards: [
+    { title: "Скилл для сценариев рилс", note: "пишет сценарий из голосового", url: "https://t.me/c/2190640002/849" },
+    { title: "Контент-план за вечер", note: "разбор по шагам", url: "https://t.me/c/2190640002/850" },
+    { title: "Шаблон заголовков", note: "двадцать рабочих формул", url: "https://t.me/c/2190640002/851" },
+    { title: "Как отвечать на комментарии", note: "готовые заготовки", url: "https://t.me/c/2190640002/852" },
+    { title: "Чек-лист запуска", note: "внешняя страница, для проверки openLink", url: "https://example.com/" },
+    { title: "Подборка инструментов", note: "что стоит попробовать", url: "https://t.me/c/2190640002/853" }
+  ],
+  footer: { name: "Имя Фамилия", school: "Название школы" }
+};
+/* ===== конец блока данных ===== */
+</script>
+<style>
+:root {
+  --bg: #0A0A0A;
+  --surface: #161616;
+  --line: #2A2A2A;
+  --text: #F2F2F2;
+  --muted: #9A9A9A;
+  --accent: #CCFF00;
+  --on-accent: #0A0A0A;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.wrap { max-width: 560px; margin: 0 auto; padding: 40px 24px 48px; }
+a { color: inherit; text-decoration: none; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.eyebrow {
+  margin: 0 0 20px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1 {
+  margin: 0 0 20px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -.01em;
+}
+h1 span { display: block; }
+.intro { margin: 0; color: var(--muted); max-width: 44ch; }
+
+.cta {
+  margin: 48px 0;
+  padding: 28px 24px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 28px;
+}
+.cta h2 {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.cta p { margin: 0 0 24px; max-width: 44ch; }
+.btn {
+  display: inline-block;
+  padding: 16px 28px;
+  background: var(--on-accent);
+  color: var(--accent);
+  border-radius: 999px;
+  font-weight: 600;
+}
+.btn:active { opacity: .8; }
+
+.list-title {
+  margin: 0 0 16px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 16px;
+}
+.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+.card:active { border-color: var(--accent); }
+.num {
+  flex: none;
+  min-width: 2ch;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--accent);
+}
+.txt { flex: 1; min-width: 0; }
+.card-title { display: block; font-weight: 600; font-size: 17px; line-height: 1.3; }
+.card-note { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
+.arrow { flex: none; width: 22px; height: 22px; color: var(--accent); }
+
+footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+footer b { display: block; color: var(--text); font-weight: 600; font-size: 15px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="title"></h1>
+    <p class="intro" id="intro"></p>
+  </header>
+
+  <section class="cta" id="cta">
+    <h2 id="cta-title"></h2>
+    <p id="cta-text"></p>
+    <a class="btn" id="cta-btn" href="#"></a>
+  </section>
+
+  <section>
+    <h2 class="list-title" id="cards-title"></h2>
+    <ul class="cards" id="cards"></ul>
+  </section>
+
+  <footer>
+    <b id="f-name"></b>
+    <span id="f-school"></span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var D = window.KK_DATA;
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  /* ---------- определение: внутри Телеграма или нет ---------- */
+  function insideTelegram() {
+    var h = String(location.hash || ""), s = String(location.search || "");
+    if (h.indexOf("tgWebApp") !== -1 || s.indexOf("tgWebApp") !== -1) return true;
+    if (window.TelegramWebviewProxy) return true;
+    try {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.performAction) return true;
+    } catch (e) {}
+    return false;
+  }
+  var IN_TG = insideTelegram();
+  var tg = (window.Telegram && window.Telegram.WebApp) || null;
+
+  /* ---------- отправка событий напрямую (если нет Telegram.WebApp) ---------- */
+  function postEvent(name, data) {
+    var payload = data || {};
+    try {
+      if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+        window.TelegramWebviewProxy.postEvent(name, JSON.stringify(payload));
+        return;
+      }
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.performAction) {
+        window.webkit.messageHandlers.performAction.postMessage({ eventType: name, eventData: payload });
+        return;
+      }
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({ eventType: name, eventData: payload }), "*");
+      }
+    } catch (e) {}
+  }
+
+  /* ---------- отрисовка из KK_DATA ---------- */
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function setText(id, text) { document.getElementById(id).textContent = text; }
+  function setLink(a, url) {
+    a.href = url;
+    a.setAttribute("data-url", url);
+    a.target = IN_TG ? "_self" : "_blank";
+    if (!IN_TG) a.rel = "noopener noreferrer";
+  }
+  function arrowIcon() {
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("class", "arrow");
+    svg.setAttribute("aria-hidden", "true");
+    var p = document.createElementNS(SVG_NS, "path");
+    p.setAttribute("d", "M5 12h14M13 6l6 6-6 6");
+    p.setAttribute("fill", "none");
+    p.setAttribute("stroke", "currentColor");
+    p.setAttribute("stroke-width", "2");
+    p.setAttribute("stroke-linecap", "round");
+    p.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(p);
+    return svg;
+  }
+
+  document.title = D.pageTitle;
+  document.documentElement.style.setProperty("--bg", D.themeColor);
+  document.documentElement.style.setProperty("--on-accent", D.themeColor);
+  setText("eyebrow", D.eyebrow);
+  var h1 = document.getElementById("title");
+  D.titleLines.forEach(function (line) { h1.appendChild(el("span", null, line)); });
+  setText("intro", D.intro);
+
+  setText("cta-title", D.cta.title);
+  setText("cta-text", D.cta.text);
+  var btn = document.getElementById("cta-btn");
+  btn.textContent = D.cta.button;
+  setLink(btn, D.cta.url);
+
+  setText("cards-title", D.cardsTitle);
+  var list = document.getElementById("cards");
+  D.cards.forEach(function (c, i) {
+    var li = document.createElement("li");
+    var a = el("a", "card");
+    setLink(a, c.url);
+    a.appendChild(el("span", "num", String(i + 1).padStart(2, "0")));
+    var t = el("span", "txt");
+    t.appendChild(el("span", "card-title", c.title));
+    t.appendChild(el("span", "card-note", c.note));
+    a.appendChild(t);
+    a.appendChild(arrowIcon());
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+
+  setText("f-name", D.footer.name);
+  setText("f-school", D.footer.school);
+
+  /* ---------- запуск внутри Телеграма ---------- */
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor(D.themeColor);
+      if (tg.setBackgroundColor) tg.setBackgroundColor(D.themeColor);
+      if (tg.setBottomBarColor) tg.setBottomBarColor(D.themeColor);
+    } catch (e) {}
+  } else if (IN_TG) {
+    postEvent("web_app_ready");
+    postEvent("web_app_expand");
+    postEvent("web_app_set_header_color", { color: D.themeColor });
+    postEvent("web_app_set_background_color", { color: D.themeColor });
+  }
+
+  /* ---------- обработчик клика ---------- */
+  function onLinkClick(ev) {
+    if (!IN_TG) return; /* обычный браузер: ссылка открывается сама */
+    var url = this.getAttribute("data-url");
+    if (!url) return;
+    ev.preventDefault();
+    var isTme = url.indexOf("https://t.me/") === 0;
+
+    if (tg) {
+      if (isTme) {
+        /* порядок важен: сначала close, сразу после него openTelegramLink */
+        tg.close();
+        tg.openTelegramLink(url);
+      } else {
+        tg.openLink(url);
+      }
+      return;
+    }
+
+    /* объекта Telegram.WebApp нет, но мы в Телеграме: события напрямую */
+    if (isTme) {
+      postEvent("web_app_close");
+      postEvent("web_app_open_tg_link", { path_full: url.replace("https://t.me", "") });
+    } else {
+      postEvent("web_app_open_link", { url: url });
+    }
+  }
+  var links = document.querySelectorAll("a[data-url]");
+  for (var k = 0; k < links.length; k++) links[k].addEventListener("click", onLinkClick);
+})();
+</script>
+</body>
+</html>
