@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title></title>
-<script src="telegram-web-app.js"></script>
+<script src="https://st.max.ru/js/max-web-app.js"></script>
 <script>
 /* ===== меняете только этот блок ===== */
 window.KK_DATA = {
@@ -142,6 +142,7 @@ footer { margin-top: 48px; text-align: center; font-size: 13px; color: var(--mut
 .shot { display: block; margin: 0 0 20px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .shot img { display: block; width: 100%; height: auto; }
 .shot-solo { margin: 0; }
+.debug { position: fixed; top: 0; left: 0; right: 0; z-index: 20; margin: 0; padding: 8px 12px; background: #000; color: #7CFF7C; font: 11px/1.4 monospace; white-space: pre-wrap; }
 .sec-text { margin: -8px 0 16px; font-size: 14px; color: var(--muted); }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); }
 .bar .btn { max-width: 512px; margin: 0 auto; }
@@ -157,35 +158,40 @@ footer { margin-top: 48px; text-align: center; font-size: 13px; color: var(--mut
   var BG = "#F7F5F2";
   var SVG_NS = "http://www.w3.org/2000/svg";
 
-  /* ---------- внутри Телеграма или нет ---------- */
-  function insideTelegram() {
-    var h = String(location.hash || ""), s = String(location.search || "");
-    if (h.indexOf("tgWebApp") !== -1 || s.indexOf("tgWebApp") !== -1) return true;
-    if (window.TelegramWebviewProxy) return true;
+  /* ---------- внутри MAX или нет ---------- */
+  /* скрипт max-web-app.js грузится и в обычном браузере, но поля объекта WebApp там пустые */
+  var wa = window.WebApp || null;
+  function insideMax() {
     try {
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.performAction) return true;
+      if (!wa) return false;
+      if (wa.initData || wa.platform || wa.version) return true;
+      if (wa.initDataUnsafe && wa.initDataUnsafe.user) return true;
     } catch (e) {}
     return false;
   }
-  var IN_TG = insideTelegram();
-  var tg = (window.Telegram && window.Telegram.WebApp) || null;
+  var IN_MAX = insideMax();
 
-  /* ---------- события напрямую, если нет Telegram.WebApp ---------- */
-  function postEvent(name, data) {
-    var payload = data || {};
-    try {
-      if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
-        window.TelegramWebviewProxy.postEvent(name, JSON.stringify(payload));
-        return;
-      }
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.performAction) {
-        window.webkit.messageHandlers.performAction.postMessage({ eventType: name, eventData: payload });
-        return;
-      }
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage(JSON.stringify({ eventType: name, eventData: payload }), "*");
-      }
-    } catch (e) {}
+  /* ---------- разбор ссылок: любая запись max.ru приводится к одному виду ---------- */
+  /* принимает https://max.ru/x, http://max.ru/x, max.ru/x; результат всегда начинается с https://max.ru/ */
+  function maxPath(u) {
+    var m = /^(?:https?:\/\/)?(?:www\.)?max\.ru(\/.*)?$/i.exec(String(u || "").trim());
+    return m && m[1] && m[1].length > 1 ? m[1] : null;
+  }
+  function normalizeUrl(u) {
+    var path = maxPath(u);
+    if (path) return "https://max.ru" + path;
+    u = String(u || "").trim();
+    if (/^[a-z][a-z0-9+.\-]*:/i.test(u)) return u;
+    return "https://" + u;
+  }
+
+  /* режим отладки: добавьте ?debug=1 к адресу приложения, и вверху появится строка с диагнозом */
+  var DEBUG = /(?:^|[?&])debug(?:=|&|$)/.test(String(location.search || ""));
+  function debug(text) {
+    if (!DEBUG) return;
+    var d = document.getElementById("kk-debug");
+    if (!d) { d = document.createElement("pre"); d.id = "kk-debug"; d.className = "debug"; document.body.appendChild(d); }
+    d.textContent = text;
   }
 
   /* ---------- построение разметки из KK_DATA ---------- */
@@ -197,10 +203,11 @@ footer { margin-top: 48px; text-align: center; font-size: 13px; color: var(--mut
   }
   function link(cls, url) {
     var a = el("a", cls);
+    url = normalizeUrl(url);
     a.href = url;
     a.setAttribute("data-url", url);
-    a.target = IN_TG ? "_self" : "_blank";
-    if (!IN_TG) a.rel = "noopener noreferrer";
+    a.target = IN_MAX ? "_self" : "_blank";
+    if (!IN_MAX) a.rel = "noopener noreferrer";
     return a;
   }
   function arrow() {
@@ -336,46 +343,34 @@ footer { margin-top: 48px; text-align: center; font-size: 13px; color: var(--mut
   bar.appendChild(button(D.bar));
   document.body.appendChild(bar);
 
-  /* ---------- запуск внутри Телеграма ---------- */
-  if (tg) {
-    try {
-      tg.ready();
-      tg.expand();
-      if (tg.setHeaderColor) tg.setHeaderColor(BG);
-      if (tg.setBackgroundColor) tg.setBackgroundColor(BG);
-      if (tg.setBottomBarColor) tg.setBottomBarColor(BG);
-    } catch (e) {}
-  } else if (IN_TG) {
-    postEvent("web_app_ready");
-    postEvent("web_app_expand");
-    postEvent("web_app_set_header_color", { color: BG });
-    postEvent("web_app_set_background_color", { color: BG });
+  /* ---------- запуск внутри MAX ---------- */
+  if (IN_MAX) {
+    try { if (typeof wa.ready === "function") wa.ready(); } catch (e) {}
   }
+
+  function info() {
+    return "внутри MAX: " + IN_MAX + "\nWebApp: " + (wa ? "есть, версия " + wa.version + ", платформа " + wa.platform + ", initData " + (wa.initData ? "заполнен" : "пуст") : "нет (скрипт max-web-app.js не загрузился?)");
+  }
+  debug(info());
 
   /* ---------- клик по ссылке ---------- */
   function onLinkClick(ev) {
-    if (!IN_TG) return; /* обычный браузер: ссылка открывается сама */
+    if (!IN_MAX) return; /* обычный браузер: ссылка открывается сама */
     var url = this.getAttribute("data-url");
     if (!url) return;
     ev.preventDefault();
-    var isTme = url.indexOf("https://t.me/") === 0;
-
-    if (tg) {
-      if (isTme) {
-        /* порядок важен: сначала close, сразу после него openTelegramLink */
-        tg.close();
-        tg.openTelegramLink(url);
+    var isMax = url.indexOf("https://max.ru/") === 0;
+    debug(info() + "\nclick: " + url + "\nветка: " + (isMax ? "openMaxLink, затем close" : "openLink"));
+    try {
+      if (isMax) {
+        /* порядок: сначала openMaxLink, сразу после него close */
+        wa.openMaxLink(url);
+        wa.close();
       } else {
-        tg.openLink(url);
+        wa.openLink(url);
       }
-      return;
-    }
-
-    if (isTme) {
-      postEvent("web_app_close");
-      postEvent("web_app_open_tg_link", { path_full: url.replace("https://t.me", "") });
-    } else {
-      postEvent("web_app_open_link", { url: url });
+    } catch (e) {
+      debug(info() + "\nошибка: " + e);
     }
   }
   var links = document.querySelectorAll("a[data-url]");
